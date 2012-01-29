@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<settings>
+	<setting id="articlesPerPage" type="integer" name="Articles per page">5</setting>
+	<setting id="showSummary" type="boolean" name="Show summary">true</setting>
+	<setting id="commentsEnabled" type="boolean" name="Comments Enabled">false</setting>
+</settings>

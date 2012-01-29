@@ -1,0 +1,38 @@
+Farore is a content management system to help you create websites.
+
+This software is under LGPL Licence, further information in the LICENCE file.
+
+----------------------------------------------------------------
+1. Installation
+----------------------------------------------------------------
+
+To install farore, copy the folder content to any subdirectory of your server'sroot (or to the root itself).
+Then access it into your browser to see the installation page.
+
+Installation fields details
+
+Administration
+Username 		: The username which will be used to access the administration module of your website
+Password 		: The password which will be used to access the administration module of your website
+
+Database
+Host 			: The adress of the server where the database is located
+Username 		: The username which will be used to access the database
+Password 		: The password which will be used to access the database
+Base 			: The base which will be used to store data in the database
+
+Website
+Name			: The name of your website
+Default module 	: The module which will be shown on the home of your website
+Description 	: A brief description of your website
+Keywords		: A list of coma-separated keyword describing your website
+Language		: The language used to write the page of your website
+
+Make sure to fill every field and click Install. If the installation is succefull
+you should land on the home page of your freshly created website.
+
+----------------------------------------------------------------
+2. Administration
+----------------------------------------------------------------
+
+TODO

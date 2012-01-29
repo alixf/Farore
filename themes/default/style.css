@@ -1,0 +1,157 @@
+html
+{
+	height : 100%;
+}
+
+body
+{
+	margin : 0px;
+	background-color : #AAA;
+	font-family : Helvetica, Arial, serif;
+	height : 100%;
+}
+
+a
+{
+	text-decoration : none;
+}
+
+header, footer
+{
+	width : 800px;
+	margin : auto;
+	text-align : center;
+	color : #FFF;
+	text-shadow : 0px 1px #000;
+	border : 1px solid #555;
+	border-top : 0px;
+	background:-moz-linear-gradient(top,  rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 100%);
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0.3)), color-stop(100%,rgba(255,255,255,0)));
+	background:-webkit-linear-gradient(top, rgba(255,255,255,0.3) 0%,rgba(255,255,255,0) 100%);
+	background:-o-linear-gradient(top, rgba(255,255,255,0.3) 0%,rgba(255,255,255,0) 100%);
+	background:-ms-linear-gradient(top, rgba(255,255,255,0.3) 0%,rgba(255,255,255,0) 100%);
+	background:linear-gradient(top, rgba(255,255,255,0.3) 0%,rgba(255,255,255,0) 100%);
+	background-color : #888;
+	box-shadow : 0px 1px 3px rgba(0,0,0,0.5); 
+}
+
+footer
+{
+	margin-top : 20px;
+	border : 1px solid #555;
+}
+
+header a
+{
+	color : #FFF;
+	font-size : 2.5em;
+}
+
+nav
+{
+	margin : 5px auto;
+	text-align : center;
+}
+
+nav a
+{
+	font-weight : bold;
+	color : #666;
+	text-shadow : 0px 1px 0px #DDD;
+	-webkit-transition : all 0.25s linear;
+}
+
+nav a:hover
+{
+	color : #FFF;
+	text-shadow : 0px 1px 0px #000, 0px 0px 3px rgba(0,0,0,0.5);
+	-webkit-transition : all 0.25s linear;
+}
+
+#page
+{
+	width : 800px;
+	margin : auto;
+	border-radius : 5px;
+	background-color : #FFF;
+	box-shadow : 0px 0px 5px #000;
+}
+
+#main
+{
+	display : inline-block;
+	width : 600px;
+	vertical-align : top;
+}
+
+aside
+{
+	display : inline-block;
+	width : 188px;
+	border-radius : 0px 5px 5px 0px;
+	vertical-align : top;
+	border-left : 2px groove;
+	padding : 5px;
+}
+
+footer
+{
+	
+}
+
+#ribbon
+{
+	background-color : #DDD;
+	margin : 5px;
+	padding : 0px 5px;
+	border-radius : 3px;
+	box-shadow : 0px 0px 5px #000 inset;
+}
+
+#ribbon a
+{
+	display : inline-block;
+	color : rgba(0,0,0,0.5);
+	padding : 2px 0px;
+	-webkit-transition : all 0.25s linear;
+}
+
+#ribbon a:hover
+{
+	background-color : rgba(0,0,0,0.2);
+	color : #EEE;
+	padding : 2px 5px;
+	-webkit-transition : all 0.25s linear;
+	text-shadow : 0px 1px 0px rgba(0,0,0,0.5);
+}
+
+#ribbon a:before
+{
+	content : "» ";
+}
+
+.message
+{
+	padding : 1px 5px;
+	margin : 5px 10px;
+	border-radius : 3px;
+	color : #FFF;
+	text-shadow : 0px 1px 0px rgba(0,0,0,0.5);
+}
+
+.message a
+{
+	float : right;
+	color : #FFF;
+	text-shadow : 0px 1px 0px rgba(0,0,0,0.5);
+}
+
+.message.error
+{
+	background-color : rgba(255,0,0,0.5);
+}
+
+.message.success
+{
+	background-color : rgba(0,127,0,0.5);
+}
