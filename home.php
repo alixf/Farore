@@ -1,87 +1,40 @@
 <?php
-	include_once 'global/init.php';
-
-	function readSettings($modulePath)
-	{
-		$settings = array();
-		$settingsFile = $modulePath.'configuration.xml';
-		
-		if(file_exists($settingsFile))
-		{
-			$document = new DomDocument();
-			$document->load($settingsFile);
-			
-			foreach($document->getElementsByTagName('setting') as $setting)
-			{
-				switch($setting->getAttribute('type'))
-				{
-				case 'integer':
-					$settings[$setting->getAttribute('id')] = intval($setting->nodeValue);
-					break;
-					
-				case 'boolean':
-					$settings[$setting->getAttribute('id')] = $setting->nodeValue == 'true';
-					break;
-					
-				default :
-					$settings[$setting->getAttribute('id')] = $setting->nodeValue;
-					break;
-				}
-			}
-		}
-		
-		return $settings;
-	}
-
-	// Declare variables to be used in the process
-	$data = array();
-	$module = '';
-	$modulePath = $modulesBasePath;
-	$moduleSettings = array();
+	require_once 'global/core.class.php';	
+	require_once 'libs/minifyHTML.php';
 	
-	if (empty($_GET[$urlParameterName]))
-		$_GET[$urlParameterName] = $defaultModule;
-
-	// Parse the url parameter
-	$modules = explode($urlParameterSeparator, $_GET[$urlParameterName]);
+	$core = new Core();
+	$core->parseURL();
 	
-	// loop through modules specified in the url parameter
-	$moduleExists = true;
-	for ($i = 0; $i < count($modules) && $moduleExists; $i++)
+	// Create module
+	$core->createModule();
+	
+	// Execute module
+	$core->getModule()->execute($core);
+	
+	ob_start('Minify_HTML::minify'); 
+	if(!isset($_GET['raw']))
 	{
-		// Define the exact module name
-		$moduleName = $modules[$i];
-		if($i == count($modules)-1)
-		{
-			// This is the last module, extract module's name and data
-			$moduleAndData = explode($dataSeparator, $modules[$i]);
-			$moduleName = $moduleAndData[0];
-			$data = array_slice($moduleAndData, 1);
-		}
-		
-		if (is_dir($modulePath . $moduleName))
-		{
-			// If module exists, add the module to module's path
-			$module = $moduleName;
-			$modulePath .= $module . '/';
-			$modules[$i] = '';
-			
-			if($i == 0) // Top level module, read configuration
-				$moduleSettings = readSettings($modulePath);
-		}
+		// Include template or view
+		if(file_exists($core->getBasePath().'global/template.php'))
+			include_once($core->getBasePath().'global/template.php');
 		else
-		{
-			// If module doesn't exist, redirect to the 404 error module
-			$module = '404';
-			$modulePath = 'modules/error/404/';
-			$moduleExists = false;
-			
-			// Read configuration
-			$moduleSettings = readSettings('modules/error/');
-		}
+			$core->getModule()->display();
 	}
-	
-	// Include Model and View
-	include_once($modulePath.'model.php');
-	include_once($internalBasePath.'global/template.php');
+	else
+	{
+		// Print special element that will be parsed to update dynamic content outside of the ajax inclusion frame
+		echo '<ajax:title>'.$core->getPageTitle().'</ajax:title>';
+		echo '<ajax:canonical>'.$core->getPageCanonicalLink().'</ajax:canonical>';
+		echo '<ajax:description>'.$core->getPageDescription().'</ajax:description>';
+		echo '<ajax:keywords>'.implode(', ', $core->getPageKeywords()).'</ajax:keywords>';
+		
+		$tmp = array();
+		foreach($core->getPagePath() as $pageStep)
+			$tmp[] = implode('|', $pageStep);
+		echo '<ajax:path>'.implode(';', $tmp).'</ajax:path>';
+		
+		// Display module
+		$core->getModule()->display();
+	}
+	ob_end_flush();
 ?>

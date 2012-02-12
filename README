@@ -16,6 +16,7 @@ Username 		: The username which will be used to access the administration module
 Password 		: The password which will be used to access the administration module of your website
 
 Database
+Driver			: The type of database to be used
 Host 			: The adress of the server where the database is located
 Username 		: The username which will be used to access the database
 Password 		: The password which will be used to access the database

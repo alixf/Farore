@@ -1,15 +1,15 @@
 <!doctype html>
 <html>
 	<head>
-		<title><?php echo($pageTitle); ?></title>
+		<title><?php echo $core->getPageTitle(); ?></title>
 		
-		<?php echo !empty($pageCanonicalLink) ? '<link rel="canonical" href="'.$pageCanonicalLink.'" />' : '' ; ?>
+		<?php echo $core->getPageCanonicalLink() != '' ? '<link rel="canonical" href="'.$core->getPageCanonicalLink().'" />' : '' ; ?>
 		
-		<link rel="stylesheet" type="text/css" href="<?php echo $themesUrlPath; ?>default/style.css" />
+		<link rel="stylesheet" type="text/css" href="<?php echo $core->getThemesURL(); ?>default/style.css" />
 		
-		<?php echo !empty($pageEncoding) || true ? '<meta charset="'.$pageEncoding.'">' : '' ; ?>
-		<?php echo !empty($pageKeywords) || true ? '<meta name="keywords" content="'.implode(', ', array_unique($pageKeywords)).'" />' : '' ; ?>
-		<?php echo !empty($pageDescription) || true ? '<meta name="description" content="'.$pageDescription.'" />' : '' ; ?>
+		<?php echo $core->getPageEncoding() != '' || true ? '<meta charset="'.$core->getPageEncoding().'">' : '' ; ?>
+		<?php echo $core->getPageKeywords() != '' || true ? '<meta name="keywords" content="'.implode(', ', array_unique($core->getPageKeywords())).'" />' : '' ; ?>
+		<?php echo $core->getPageDescription() != '' || true ? '<meta name="description" content="'.$core->getPageDescription().'" />' : '' ; ?>
 		
 		<!--[if lt IE 9]>
 			<script src="scripts/html5toie.js"></script>
@@ -17,35 +17,38 @@
 	</head>
 	<body>
 		<header>
-			<a href="<?php echo $urlBasePath; ?>"><?php echo $pageTitleBase; ?></a>
+			<a href="<?php echo $core->getBaseURL(); ?>"><?php echo $core->getPageTitleBase(); ?></a>
 		</header>
 		<nav>
-			<a id="home" href="<?php echo $urlBasePath; ?>" rel="author">Blog</a>
+			<a id="home" href="<?php echo $core->getBaseURL(); ?>" rel="author">Blog</a>
 		</nav>
-		<div id="page">
+		<div id="page" class="<?php echo $core->getModuleName() ?>">
 			<div id="main">
 				<div id="ribbon">
 					<?php
-						foreach ($pagePath as $pageStep)
-							echo '<a href="' . $urlBasePath.$pageStep[1] . '">' . $pageStep[0] . '</a> ';
+						foreach ($core->getPagePath() as $pageStep)
+							echo '<a href="' . $pageStep[1] . '">' . $pageStep[0] . '</a>';
 					?>
 				</div>
 				<div id="content">
 					<?php
-					if(file_exists($modulePath . 'view.php'))
-						include($modulePath . 'view.php');
+						if($core->getModuleName() != '')
+							$core->getModule()->display();
 					?>
 				</div>
-			</div><aside>
-				lol stuff
-			</aside>
+			</div>
 		</div>
 		<footer>
-			Propulsé par <a href="http://www.eolhing.me/Farore">Farore</a>.
-			<a class="button" rel="license" href="http://jeromechoain.wordpress.com/1970/01/01/licence-comlpete-bullshit/">Licence CB</a>
-			<a class="button" href="<?php echo $urlBasePath; ?>admin">Administration</a>
-			<?php if ($isAdmin){ ?><a class="button" href="<?php echo $urlBasePath; ?>admin/connection-disconnect">Déconnexion</a><?php } ?>
+			Propulsé par <a href="http://www.eolhing.me/Farore">Farore</a> - 
+			<a class="button" rel="license" href="http://jeromechoain.wordpress.com/1970/01/01/licence-comlpete-bullshit/">Licence CB</a> - 
+			<a class="button" href="<?php echo $core->getBaseURL(); ?>admin">Administration</a>
+			<?php
+				if ($core->isAdmin())
+				{
+					?> - <a class="button" href="<?php echo $core->getBaseURL(); ?>admin/connection-disconnect">Déconnexion</a><?php
+				}
+			?>
 		</footer>
-		<script src="scripts/global.js"></script>
+		<script src="<?php echo $core->getBaseURL(); ?>scripts/global.js"></script>
 	</body>
 </html>

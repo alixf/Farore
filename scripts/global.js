@@ -1,10 +1,23 @@
+
+var getBaseURL = (function()
+{
+    var scripts = document.getElementsByTagName('script');
+    var index = scripts.length - 1;
+    var myScript = scripts[index];
+    return function() { return myScript.src.substring(0, myScript.src.length-17); };
+})();
+
 // The following piece of code check if a page is likely to be loaded immediatly and hide the content in that case
 var contentHidden = false;
+
 if(window.location.hash.length > 0 || window.location.toString().charAt(window.location.toString().length-1) == '#')
 {
 	document.getElementById("content").style.display = "none";
 	contentHidden = true;
-	document.getElementById("ribbon").innerHTML = "&#187; <a>Chargement ...</a> ";
+
+	var ribbon = document.getElementById("ribbon");
+	if(ribbon != null)
+		document.getElementById("ribbon").innerHTML = "&#187; <a>Chargement ...</a> ";
 }
 
 /**
@@ -12,9 +25,9 @@ if(window.location.hash.length > 0 || window.location.toString().charAt(window.l
  */
 var scanPage = function()
 {
-	var internalLinkRegex = new RegExp("^https?://(www.)?eolhing.me/");
+	var internalLinkRegex = new RegExp("^"+getBaseURL());
 	var staticLinkRegex = new RegExp("static");
-	var requestPrefix = "raw.php?data=";
+	var requestPrefix = getBaseURL()+"index.php?raw&data=";
 	
 	var links = document.getElementsByTagName("a");
 	
@@ -32,7 +45,7 @@ var scanPage = function()
 		    	return function() // This function will be called when the item is clicked
 		    	{
 		    		LoadPage(pageRequest, document.getElementById("content"), "loading");
-		    		document.location.hash = relativeLink;
+		    		window.location.hash = relativeLink;
 		    		
 					// Cancel check-hash loading
 					window.previousHash = window.location.hash;
@@ -66,100 +79,140 @@ function LoadPage(pageURL, element, className)
         if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0))
         {
         	var html = xhr.responseText;
+        	var requestURL = '';
         	
-        	// Parse special elements to load dynamic content outside of the ajax frame and remove it from the content
-        	// Title
-        	var titleRegex = new RegExp("<ajax:title>(.*)</ajax:title>");
-        	if(titleRegex.test(html))
+        	var fullPageRegex = new RegExp("^<!doctype html>");
+        	if(fullPageRegex.test(html))
         	{
-	        	var titleRes = titleRegex.exec(html);
-	        	document.title = titleRes[1];
-	        	var titleTagPosition = html.search(titleRegex);
-        		html = html.substring(0, titleTagPosition)+html.substring(titleTagPosition+titleRes[0].length);
+				var requestLink = '';
+				var cleanHtml = html.replace("\n", " ");
+				var canonicalLinkRegex = new RegExp('<link rel="canonical" href="([a-zA-Z0-9-_/]+)" />');
+		
+		    	if(canonicalLinkRegex.test(cleanHtml))
+					requestLink = canonicalLinkRegex.exec(cleanHtml)[1];
+
+				var urlComponents = getBaseURL().split('/');
+				var absoluteURL = urlComponents[0]+'/'+urlComponents[1]+'/'+urlComponents[2]+requestLink;
+				var relativeURL = absoluteURL.substr(getBaseURL().length);
+				var finalLink = getBaseURL()+'index.php?raw&data=/'+relativeURL;
+				requestURL = '/'+relativeURL;
+
+	    		window.location.hash = relativeURL;
+	    		
+				// Cancel check-hash loading
+				window.previousHash = window.location.hash;
+				
+				LoadPage(finalLink, document.getElementById("content"), "loading");
         	}
-        	// Canonical link
-        	var canonicalLinkRegex = new RegExp("<ajax:canonical>(.*)</ajax:canonical>");
-        	if(canonicalLinkRegex.test(html))
+        	else
         	{
-	        	var canonicalLinkRes = canonicalLinkRegex.exec(html);
-	        	var linkList = document.getElementsByTagName("link");
-	        	for(i = 0; i < linkList.length; i++)
+	        	// Parse special elements to load dynamic content outside of the ajax frame and remove it from the content
+	        	// Title
+	        	var titleRegex = new RegExp("<ajax:title>(.*)</ajax:title>");
+	        	if(titleRegex.test(html))
 	        	{
-	        		if(linkList[i].hasAttribute("rel") && linkList[i].rel == "canonical")
-	        			linkList[i].href = canonicalLinkRes[1];
+		        	var titleRes = titleRegex.exec(html);
+		        	document.title = titleRes[1];
+		        	var titleTagPosition = html.search(titleRegex);
+	        		html = html.substring(0, titleTagPosition)+html.substring(titleTagPosition+titleRes[0].length);
 	        	}
-	        	var canonicalLinkTagPosition = html.search(canonicalLinkRegex);
-        		html = html.substring(0, canonicalLinkTagPosition)+html.substring(canonicalLinkTagPosition+canonicalLinkRes[0].length);
-        	}
-        	// Keywords
-        	var keywordsRegex = new RegExp("<ajax:keywords>(.*)</ajax:keywords>");
-        	if(keywordsRegex.test(html))
-        	{
-	        	var keywordsRes = keywordsRegex.exec(html);
-	        	var metaTagList = document.getElementsByTagName("meta");
-	        	for(i = 0; i < metaTagList.length; i++)
+	        	// Canonical link
+	        	var canonicalLinkRegex = new RegExp("<ajax:canonical>(.*)</ajax:canonical>");
+	        	if(canonicalLinkRegex.test(html))
 	        	{
-	        		if(metaTagList[i].hasAttribute("name") && metaTagList[i].name == "keywords")
-	        			metaTagList[i].content = keywordsRes[1];
+		        	var canonicalLinkRes = canonicalLinkRegex.exec(html);
+		        	var linkList = document.getElementsByTagName("link");
+		        	for(i = 0; i < linkList.length; i++)
+		        	{
+		        		if(linkList[i].hasAttribute("rel") && linkList[i].rel == "canonical")
+		        			linkList[i].href = canonicalLinkRes[1];
+		        	}
+		        	var canonicalLinkTagPosition = html.search(canonicalLinkRegex);
+	        		html = html.substring(0, canonicalLinkTagPosition)+html.substring(canonicalLinkTagPosition+canonicalLinkRes[0].length);
+	        		
+		        	requestURL = canonicalLinkRes[1];
 	        	}
-	        	var keywordsTagPosition = html.search(keywordsRegex);
-        		html = html.substring(0, keywordsTagPosition)+html.substring(keywordsTagPosition+keywordsRes[0].length);
-        	}
-        	// Description
-        	var descriptionRegex = new RegExp("<ajax:description>(.*)</ajax:description>");
-        	if(descriptionRegex.test(html))
-        	{
-	        	var descriptionRes = descriptionRegex.exec(html);
-	        	var metaTagList = document.getElementsByTagName("meta");
-	        	for(i = 0; i < metaTagList.length; i++)
+	        	// Keywords
+	        	var keywordsRegex = new RegExp("<ajax:keywords>(.*)</ajax:keywords>");
+	        	if(keywordsRegex.test(html))
 	        	{
-	        		if(metaTagList[i].hasAttribute("name") && metaTagList[i].name == "description")
-	        			metaTagList[i].content = descriptionRes[1];
+		        	var keywordsRes = keywordsRegex.exec(html);
+		        	var metaTagList = document.getElementsByTagName("meta");
+		        	for(i = 0; i < metaTagList.length; i++)
+		        	{
+		        		if(metaTagList[i].hasAttribute("name") && metaTagList[i].name == "keywords")
+		        			metaTagList[i].content = keywordsRes[1];
+		        	}
+		        	var keywordsTagPosition = html.search(keywordsRegex);
+	        		html = html.substring(0, keywordsTagPosition)+html.substring(keywordsTagPosition+keywordsRes[0].length);
 	        	}
-	        	var descriptionTagPosition = html.search(descriptionRegex);
-        		html = html.substring(0, descriptionTagPosition)+html.substring(descriptionTagPosition+descriptionRes[0].length);
-        	}
-        	// Path
-        	var pathRegex = new RegExp("<ajax:path>(.*)</ajax:path>");
-        	if(pathRegex.test(html))
-        	{
-	        	var pathRes = pathRegex.exec(html);
-	        	var pathArray = pathRes[1].split(";");
-	        	var pathHTMLRes = "";
-	        	for(pathStep in pathArray) // Create an html link for each element
+	        	// Description
+	        	var descriptionRegex = new RegExp("<ajax:description>(.*)</ajax:description>");
+	        	if(descriptionRegex.test(html))
 	        	{
-	        		if(typeof(pathArray[pathStep]) == "string") //TODO bugfix for a weird bug in Chrome 16.*-
-	        		{
-		        		var pathStepArray = pathArray[pathStep].split("|");
-						pathHTMLRes += "&#187; <a href=\""+pathStepArray[1]+"\">"+pathStepArray[0]+"</a> ";
-					}
+		        	var descriptionRes = descriptionRegex.exec(html);
+		        	var metaTagList = document.getElementsByTagName("meta");
+		        	for(i = 0; i < metaTagList.length; i++)
+		        	{
+		        		if(metaTagList[i].hasAttribute("name") && metaTagList[i].name == "description")
+		        			metaTagList[i].content = descriptionRes[1];
+		        	}
+		        	var descriptionTagPosition = html.search(descriptionRegex);
+	        		html = html.substring(0, descriptionTagPosition)+html.substring(descriptionTagPosition+descriptionRes[0].length);
 	        	}
-	        	document.getElementById("ribbon").innerHTML = pathHTMLRes;
-	        	var pathTagPosition = html.search(pathRegex);
-        		html = html.substring(0, pathTagPosition)+html.substring(pathTagPosition+pathRes[0].length);
-        	}
-        	
-        	// Set the remaining content in the ajax frame
-        	element.innerHTML = html;
-        	
-			// Remove class from the element
-			if(className != undefined && className != null && className != "")
-			{
-				if(element.className == className)
-					element.removeAttribute("class");
-				else
-					element.className = element.className.substring(0, element.className.length-className.length-1);
+	        	// Path
+	        	var pathRegex = new RegExp("<ajax:path>(.*)</ajax:path>");
+	        	if(pathRegex.test(html))
+	        	{
+		        	var pathRes = pathRegex.exec(html);
+		        	var pathArray = pathRes[1].split(";");
+		        	var pathHTMLRes = "";
+		        	for(pathStep in pathArray) // Create an html link for each element
+		        	{
+		        		if(typeof(pathArray[pathStep]) == "string") //TODO bugfix for a weird bug in Chrome 16.*-
+		        		{
+			        		var pathStepArray = pathArray[pathStep].split("|");
+							pathHTMLRes += "<a href=\""+pathStepArray[1]+"\">"+pathStepArray[0]+"</a>";
+						}
+		        	}
+		        	
+		        	var ribbon = document.getElementById("ribbon");
+		        	if(ribbon != null)
+		        		document.getElementById("ribbon").innerHTML = pathHTMLRes;
+		        	
+		        	var pathTagPosition = html.search(pathRegex);
+	        		html = html.substring(0, pathTagPosition)+html.substring(pathTagPosition+pathRes[0].length);
+	        	}
+	        	
+	        	// Set the remaining content in the ajax frame
+	        	element.innerHTML = html;
+	        	
+				// Remove class from the element
+				if(className != undefined && className != null && className != "")
+				{
+					if(element.className == className)
+						element.removeAttribute("class");
+					else
+						element.className = element.className.substring(0, element.className.length-className.length-1);
+				}
+				
+				// Set the class attribute of the page element to the moduleName
+				requestURLParts = requestURL.split("/");
+				var moduleName = requestURLParts[requestURLParts.length-1].split("-")[0];
+				document.getElementById("page").className = moduleName;
+				
+				// Rescan page (needed the dynamically loaded content may contains internal links)
+			    scanPage();
+			    
+			    /*
+			    // Explicitly load and render Google +1 buttons
+			    gapi.plusone.go("content");
+			    */
+			    
+			    // if the content is hidden (typically happens when a page is loaded and being immediatly ajax-replaced by another)
+			    if(contentHidden)
+					document.getElementById("content").removeAttribute("style");
 			}
-			
-			// Rescan page (needed the dynamically loaded content may contains internal links)
-		    scanPage();
-		    
-		    // Explicitly load and render Google +1 buttons
-		    gapi.plusone.go("content");
-		    
-		    // if the content is hidden (typically happens when a page is loaded and being immediatly ajax-replaced by another)
-		    if(contentHidden)
-				document.getElementById("content").removeAttribute("style");
         }
     };
     
@@ -177,7 +230,7 @@ function checkHash()
 	if(window.previousHash != window.location.hash)
 	{
 		window.previousHash = window.location.hash;
-		LoadPage("raw.php?data="+window.location.hash.substring(1), document.getElementById("content"), "loading");
+		LoadPage(getBaseURL()+"index.php?raw&data="+window.location.hash.substring(1), document.getElementById("content"), "loading");
 	}
 	setTimeout("checkHash()", 100);
 }
@@ -186,7 +239,7 @@ window.onload = function()
 {
 	// If the url contains an anchor, treat it as an ajax marker and load the corresponding page, else just scan the page for dynamic links
 	if(window.location.hash.length > 0 || window.location.toString().charAt(window.location.toString().length-1) == '#')
-		LoadPage("raw.php?data="+window.location.hash.substring(1), document.getElementById("content"), "loading");
+		LoadPage(getBaseURL()+"index.php?raw&data="+window.location.hash.substring(1), document.getElementById("content"), "loading");
 	else
 		scanPage();
 	
