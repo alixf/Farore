@@ -1,31 +1,31 @@
 <?php
-	class Error
+	require_once 'global/module.class.php';
+
+	class Error extends Module
 	{
-		public function __construct($core, $settings, $data)
+		public function __construct($core)
 		{
+			parent::__construct($core);
 		}
-		
-		public static function install($database)
-		{
-			return true;
-		}
-		
-		public function execute($core)
-		{
-			$this->baseURL = $core->getBaseURL();
+
+		public function execute()
+		{	
+			header('HTTP/1.0 500 Internal Server Error');
 			
-		    $core->setPageTitle($core->getPageTitle().' - Erreur');
-		    $core->setPageCanonicalLink('/error');
-		    $core->addPagePathStep('Erreur', '/error');
+		    $this->core->setPage('Erreur', $this->core->getBaseURL().'error');
+			
+			return true;
 		}
 		
 		public function display()
 		{
 			?>
-			<div class="message error">Erreur : Une erreur indeterminée est survenue. <a href="<?php echo $this->baseURL; ?>">Aller à l'accueil</a></div>
+			<h1>Erreur</h1>
+			<div class="message error">
+				Une erreur indeterminée est survenue. 
+				<a href="<?php echo $this->core->getBaseURL(); ?>">Aller à l'accueil</a>
+			</div>
 			<?php
 		}
-		
-		private $baseURL;
 	}
 ?>

@@ -1,40 +1,53 @@
 <?php
-	require_once 'global/core.class.php';	
-	require_once 'libs/minifyHTML.php';
-	
+	require_once 'global/core.class.php';
+	require_once 'libs/minify.class.php';
+
+	/*
+	 * Initialize core and parse url
+	 */
 	$core = new Core();
-	$core->parseURL();
-	
-	// Create module
-	$core->createModule();
-	
-	// Execute module
-	$core->getModule()->execute($core);
-	
-	ob_start('Minify_HTML::minify'); 
-	if(!isset($_GET['raw']))
+	$core->setMinifyType(Minify::HTML);
+	$core->parseURL(isset($_GET[$core->getUrlParameterName()]) ? $_GET[$core->getUrlParameterName()] : '');
+
+	/*
+	 * Execute modules
+	 */
+	$run = true;
+	while ($run)
 	{
-		// Include template or view
-		if(file_exists($core->getBasePath().'global/template.php'))
-			include_once($core->getBasePath().'global/template.php');
-		else
-			$core->getModule()->display();
+		switch($core->createModule())
+		{
+		case Core::MODULENOTFOUND :
+			$core->parseURL('/error/404');
+			break;
+		case Core::MODULEUNAUTHORIZED :
+			$core->parseURL('/error/403');
+			break;
+		case Core::MODULESUCCESS :
+			$core->getModule()->execute();
+			break;
+		default :
+			$run = false;
+			break;
+		}
 	}
+	
+	/*
+	 * Display last module
+	 */
+	$minifyType = $core->getMinifyType();
+	$obCallback = function($input) use ($minifyType)
+	{
+		return Minify::apply($input, $minifyType);
+	};
+	
+	ob_start($obCallback);
+	if ($core->getIncludeAjaxTags())
+		echo $core->getAjaxTags();
+
+	if ($core->getIncludeTemplate() && file_exists($core->getBasePath().'global/template.php'))
+		include_once ($core->getBasePath().'global/template.php');
 	else
-	{
-		// Print special element that will be parsed to update dynamic content outside of the ajax inclusion frame
-		echo '<ajax:title>'.$core->getPageTitle().'</ajax:title>';
-		echo '<ajax:canonical>'.$core->getPageCanonicalLink().'</ajax:canonical>';
-		echo '<ajax:description>'.$core->getPageDescription().'</ajax:description>';
-		echo '<ajax:keywords>'.implode(', ', $core->getPageKeywords()).'</ajax:keywords>';
-		
-		$tmp = array();
-		foreach($core->getPagePath() as $pageStep)
-			$tmp[] = implode('|', $pageStep);
-		echo '<ajax:path>'.implode(';', $tmp).'</ajax:path>';
-		
-		// Display module
 		$core->getModule()->display();
-	}
 	ob_end_flush();
 ?>

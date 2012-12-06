@@ -1,28 +1,9 @@
-Options +FollowSymlinks
-
-# URL Rewriting directives
 RewriteEngine on
-RewriteBase /
-RewriteRule ^([A-Za-z0-9-\/]+)$ ROOT/index.php?data=$1 [L,NC]
+RewriteBase /Farore/
+RewriteRule ^index\.php$ index.php [L,NC,QSA]
+RewriteRule ^(.+)$ index.php?data=$1 [L,QSA]
 
-# Error Pages
-ErrorDocument 401 ROOT/error/401
-ErrorDocument 403 ROOT/error/403
-ErrorDocument 404 ROOT/error/404
-ErrorDocument 500 ROOT/error/500
-
-# Expires directives for cache control
-ExpiresActive On
-ExpiresByType text/css A7776000
-ExpiresByType text/javascript A7776000
-ExpiresByType application/javascript A7776000
-ExpiresByType image/png A7776000
-ExpiresByType image/jpeg A7776000
-ExpiresByType image/gif A7776000
-
-# Compression directives
-<IfModule mod_headers.c>
-  <FilesMatch "\.(js|css|xml|gz)$">
-    Header append Vary Accept-Encoding
-  </FilesMatch>
-</IfModule>
+ErrorDocument 401 /error/401
+ErrorDocument 403 /error/403
+ErrorDocument 404 /error/404
+ErrorDocument 500 /error/500

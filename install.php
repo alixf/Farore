@@ -33,7 +33,7 @@
 	$pageDescription = '';
 	$pageKeywords = '';
 	$pageLanguage = 'fr';
-	$defaultModule = 'blog';
+	$defaultModule = 'home';
 		
 	if($formSent)
 	{
@@ -50,6 +50,7 @@
 		$pageKeywords = $_POST['websiteKeywords'];
 		$pageLanguage = $_POST['websiteLanguage'];
 		$defaultModule = empty($_POST['defaultModule']) ? '' : $_POST['defaultModule'];
+		$theme = 'default';
 		
 		// Check
 		if(strlen($adminUsername) < 6)
@@ -90,6 +91,8 @@
 			$error['websiteName'] = true;
 		if(!is_dir('modules/'.$defaultModule) || empty($defaultModule))
 			$error['defaultModule'] = true;
+		if(!is_dir('themes/'.$theme) || empty($theme))
+			$error['defaultModule'] = true;
 		if($pageDescription != strip_tags($pageDescription))
 			$error['websiteDescription'] = true;
 		if($pageKeywords != strip_tags($pageKeywords))
@@ -116,13 +119,12 @@
 			if(empty($error))
 			{
 				// Resolve url base path
-				$basePath = realpath(dirname(__FILE__)).'/';
 				$baseURL = $_SERVER['REQUEST_URI'][strlen($_SERVER['REQUEST_URI'])-1] == '/' ? $_SERVER['REQUEST_URI'] : dirname($_SERVER['REQUEST_URI']).'/';
 				
 				$htaccess = file_get_contents('.htaccess');
 				
 				$htaccessFile = fopen('.htaccess', 'w');
-				fwrite($htaccessFile, preg_replace('/ROOT\//', $baseURL, $htaccess));
+				fwrite($htaccessFile, preg_replace('RewriteBase /', 'RewriteBase '.$baseURL, $htaccess));
 				
 				// Parse keywords
 				$pageKeywordsArray = explode(',', $pageKeywords);
@@ -131,20 +133,8 @@
 				$pageKeywords = implode(', ', $pageKeywordsArray);
 				
 				// Fill the settings
-				$settings['basePath'] = $basePath;
-				$settings['libsPath'] = $basePath.'libs/';
-				$settings['themesPath'] = $basePath.'themes/';
-				$settings['imagesPath'] = $basePath.'images/';
-				$settings['modulesPath'] = $basePath.'modules/';
-				$settings['scriptsPath'] = $basePath.'scripts/';
-				
 				$settings['baseURL'] = $baseURL;
-				$settings['libsURL'] = $baseURL.'libs/';
-				$settings['themesURL'] = $baseURL.'themes/';
-				$settings['imagesURL'] = $baseURL.'images/';
-				$settings['modulesURL'] = $baseURL.'modules/';
-				$settings['scriptsURL']	= $baseURL.'scripts/';
-				
+				$settings['themes'] = $theme;
 				$settings['urlDataSeparator'] = '-';
 				$settings['urlParameterName'] = 'data';
 				$settings['urlParameterSeparator'] = '/';
@@ -390,7 +380,7 @@
 						}
 						?>
 					</select>
-					<div class="description">Le module par défaut est la page qui sera affiché sur votre site.<br />Si vous n'êtes pas sûr, laissez la valeur par défaut : blog.</div>
+					<div class="description">Le module par défaut est la page qui sera affiché sur votre site.<br />Si vous n'êtes pas sûr, laissez la valeur par défaut : home.</div>
 				</div>
 				<div class="item<?php if(isset($error['websiteDescription'])) echo ' error'; ?>">
 					<label>Description du site</label><textarea name="websiteDescription"><?php echo $pageDescription; ?></textarea>

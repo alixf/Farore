@@ -1,6 +1,6 @@
 <?php
-	if(!file_exists('global/configuration.xml'))
-		require_once 'install.php';
-	else
+	if (file_exists('global/configuration.xml'))
 		require_once 'home.php';
+	else
+		require_once 'install.php';
 ?>
