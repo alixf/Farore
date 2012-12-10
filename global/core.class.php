@@ -11,7 +11,7 @@
 			setlocale(LC_ALL, $this->pageLanguage);
 			session_start();
 			
-			$basePath = substr(__DIR__, 0, -6);
+			$this->basePath = substr(__DIR__, 0, -6);
 
 			// Load Framework settings
 			$this->readSettings('global/configuration.xml');
@@ -158,11 +158,12 @@
 			$url = trim($url, "/");
 
 			// If the url start with 'raw', set up specific render settings for raw pages
-			if (substr($url, 0, 4) == 'raw/')
+			if (substr($url, 0, 3) == 'raw')
 			{
 				$this->setIncludeAjaxTags(true);
 				$this->setIncludeTemplate(false);
-				$url = substr($url, 4);
+				$url = substr($url, 3);
+				$url = trim($url, "/");
 			}
 
 			// If there's no module specified in the url, go to the default module
@@ -177,7 +178,7 @@
 			for ($i = 1; $i < count($tmp); ++$i)
 				$this->moduleData[] = $tmp[$i];
 
-			$this->moduleIndex = 0;
+			$this->moduleIndex = -1;
 
 			// Fix bugs when a module have the same name as a file at the root directory
 			for ($i = 0; $i < count($this->modules); ++$i)
@@ -185,13 +186,12 @@
 				if (substr($this->modules[$i], -4) == '.php')
 					$this->modules[$i] = substr($this->modules[$i], 0, -4);
 			}
-			
-			print_r($this->modules);
 		}
 
 		public function getAjaxTags()
 		{
 			$res = '';
+			$res .= '<ajax:module>'.$this->getModuleName().'</ajax:module>';
 			$res .= '<ajax:title>'.$this->getPageTitle().'</ajax:title>';
 			$res .= '<ajax:canonical>'.$this->getPageCanonicalLink().'</ajax:canonical>';
 			$res .= '<ajax:description>'.$this->getPageDescription().'</ajax:description>';
@@ -205,13 +205,14 @@
 
 		public function createModule()
 		{
+			$this->nextModule();
+			
 			if($this->moduleIndex >= count($this->modules))
 				return self::MODULENONELEFT;
 			
 			$moduleName = $this->getModuleName();
 
 			// Include module
-			echo "\n".$this->getModulePath().$moduleName.'.class.php : '.(file_exists($this->getModulePath().$moduleName.'.class.php') ? 'true' : 'false')."\n";
 			if (file_exists($this->getModulePath().$moduleName.'.class.php'))
 				require_once ($this->getModulePath().$moduleName.'.class.php');
 			else
@@ -223,13 +224,12 @@
 			
 			$this->module = new $moduleClassName($this, $this->moduleIndex > count($this->modules) - 1);
 			
-			$this->nextModule();
 			return $this->module->getRights() & $this->getUserRights() ? self::MODULESUCCESS : self::MODULEUNAUTHORIZED;
 		}
 
 		public function nextModule()
 		{
-			$this->moduleIndex = max($this->moduleIndex, count($this->modules));
+			$this->moduleIndex = min($this->moduleIndex+1, count($this->modules));
 		}
 
 		public function getIncludeAjaxTags()
@@ -269,7 +269,7 @@
 
 		public function getModuleName()
 		{
-			return $this->modules[max($this->moduleIndex, count($this->modules)-1)];
+			return $this->modules[min($this->moduleIndex, count($this->modules)-1)];
 		}
 
 		public function getModulePath()
@@ -283,6 +283,11 @@
 		public function getModuleData()
 		{
 			return $this->moduleData;
+		}
+		
+		public function setModuleData($moduleData)
+		{
+			$this->moduleData = $moduleData;
 		}
 
 		public function getModuleSettings()
@@ -451,7 +456,20 @@
 			$this->setPageCanonicalLink($url);
 			$this->addPagePathStep($title, $url);
 		}
-
+		
+		public function setPageOverride($title, $url)
+		{
+			$this->setPageTitle($this->getPageBaseTitle().' - '.$title);
+			$this->setPageCanonicalLink($url);
+			$this->pagePath = array();
+			$this->addPagePathStep($title, $url);
+		}
+		
+		public function isModuleFinal()
+		{
+			return $this->moduleIndex >= count($this->modules)-1;
+		}
+		
 		// Database
 		private $database;
 
@@ -459,7 +477,6 @@
 		private $module;
 		private $modules;
 		private $moduleIndex;
-		private $moduleName;
 		private $moduleData;
 		private $moduleSettings;
 

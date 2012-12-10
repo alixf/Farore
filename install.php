@@ -121,10 +121,7 @@
 				// Resolve url base path
 				$baseURL = $_SERVER['REQUEST_URI'][strlen($_SERVER['REQUEST_URI'])-1] == '/' ? $_SERVER['REQUEST_URI'] : dirname($_SERVER['REQUEST_URI']).'/';
 				
-				$htaccess = file_get_contents('.htaccess');
-				
-				$htaccessFile = fopen('.htaccess', 'w');
-				fwrite($htaccessFile, preg_replace('RewriteBase /', 'RewriteBase '.$baseURL, $htaccess));
+				file_put_contents('.htaccess', preg_replace('/RewriteBase \//i', 'RewriteBase '.$baseURL, file_get_contents('.htaccess')));
 				
 				// Parse keywords
 				$pageKeywordsArray = explode(',', $pageKeywords);
@@ -134,7 +131,7 @@
 				
 				// Fill the settings
 				$settings['baseURL'] = $baseURL;
-				$settings['themes'] = $theme;
+				$settings['theme'] = $theme;
 				$settings['urlDataSeparator'] = '-';
 				$settings['urlParameterName'] = 'data';
 				$settings['urlParameterSeparator'] = '/';
