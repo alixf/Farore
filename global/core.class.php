@@ -25,8 +25,7 @@
 					if($this->databaseDriver == "mysql")
 						 $driverOptions = array(PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\'');
 					$this->database = new PDO($this->databaseDriver . ':host=' . $this->databaseHost . ';dbname=' . $this->databaseBase, $this->databaseUsername, $this->databasePassword,$driverOptions);
-					$this->database->setAttribute(PDO::ERRMODE_SILENT, PDO::ERRMODE_EXCEPTION);
-					if($this->databaseDriver != "pgsql")
+					if($this->databaseDriver == "mysql")
 						$this->database->setAttribute(PDO::ERRMODE_SILENT, PDO::ERRMODE_EXCEPTION);
 				}
 				catch (PDOException $e)
