@@ -24,7 +24,7 @@
 			$core->parseURL('/error/403');
 			break;
 		case Core::MODULESUCCESS :
-			$core->getModule()->execute();
+			$run = $core->getModule()->execute();
 			break;
 		default :
 			$run = false;
