@@ -11,6 +11,7 @@
 			(
 				'css' =>	array(Minify::CSS,	'text/css; charset='.$this->core->getPageEncoding()),
 				'png' =>	array(Minify::NONE,	'image/png'),
+				'gif' =>	array(Minify::NONE,	'image/gif'),
 				'jpg' =>	array(Minify::NONE,	'image/jpeg'),
 				'jpeg' =>	array(Minify::NONE,	'image/jpeg'),
 				'svg' =>	array(Minify::NONE,	'image/svg+xml'),
